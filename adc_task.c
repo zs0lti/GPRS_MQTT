@@ -28,7 +28,7 @@ void adc_task(UArg arg0, UArg arg1)
     float value_1 = 0;          // Value 1
     float value_tmp_1 = 0;      // Val_1 temp
     float tol_1 = 5;            // Tolerance 1
-    float hyst_1 = 0.3;         // Tolerance 1
+    float hyst_1 = 0.6;         // Hysterisis 1
 
     char buff[64];
 
@@ -67,31 +67,24 @@ void adc_task(UArg arg0, UArg arg1)
 
             // Read the value from the ADC.
             ADCSequenceDataGet(ADC0_BASE, 0, &val_1);
-            //printf("IP Task - ADC 0 raw value: %d \n", val_1);
+            //UARTprintf("IP Task - ADC 0 raw value: %d \n", val_1);
 
             // 4096 -> 100
             value_1 = val_1 / 41;
-            //UARTprintf("IP Task - ADC 0 raw value: %d \n", value_1);
-            //UARTprintf(buff, "value_1: %d \n", val_1);
-
 
             //UP
             if(value_1 >= value_tmp_1 + tol_1 * hyst_1 & value_tmp_1 < 100)
             {
                 value_tmp_1 = value_tmp_1 + tol_1;
-                //UARTprintf(buff, "posting: %d \n", (uint32_t)value_tmp_1);
-                //UARTprintf(buff);
                 mboxmsg.value_1 = value_tmp_1;
                 mboxmsg.typ = MSG_TYPE_ANA;
                 Mailbox_post(mboxHandleIP,&mboxmsg,BIOS_WAIT_FOREVER);
             }
 
             //DOWN
-            if(value_1 <= value_tmp_1 - tol_1 - tol_1 * hyst_1)
+            if(value_1 <= value_tmp_1 - tol_1 - tol_1 * (1 - hyst_1))
             {
                 value_tmp_1 = value_tmp_1 - tol_1;
-                //UARTprintf(buff, "posting: %d \n", (uint32_t)value_tmp_1);
-                //UARTprintf(buff);
                 mboxmsg.value_1 = value_tmp_1;
                 mboxmsg.typ = MSG_TYPE_ANA;
                 Mailbox_post(mboxHandleIP,&mboxmsg,BIOS_WAIT_FOREVER);
@@ -101,16 +94,12 @@ void adc_task(UArg arg0, UArg arg1)
             if(value_1 < 1 & value_1 < value_tmp_1)
             {
                 value_tmp_1 = value_tmp_1 - tol_1;
-                //UARTprintf(buff, "posting: %d \n", (uint32_t)value_tmp_1);
-                //UARTprintf(buff);
                 mboxmsg.value_1 = value_tmp_1;
                 mboxmsg.typ = MSG_TYPE_ANA;
                 Mailbox_post(mboxHandleIP,&mboxmsg,BIOS_WAIT_FOREVER);
             }
 
         Task_sleep(100);
-
-        //Mailbox_pend(mboxHandleIP, &mboxmsg, BIOS_WAIT_FOREVER); //Wait for new Ethernet Frame on Mailbox
 
     }
 }
