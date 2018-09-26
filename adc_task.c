@@ -42,65 +42,59 @@ void adc_task(UArg arg0, UArg arg1)
 
     while(1 > 0){
 
-            // Enable the ADC0 module.
-            SysCtlPeripheralEnable(SYSCTL_PERIPH_ADC0);
+        // Enable the ADC0 module.
+        SysCtlPeripheralEnable(SYSCTL_PERIPH_ADC0);
 
-            // Wait for the ADC0 module to be ready.
-            while(!SysCtlPeripheralReady(SYSCTL_PERIPH_ADC0))
-            {
-            }
+        // Wait for the ADC0 module to be ready.
+        while(!SysCtlPeripheralReady(SYSCTL_PERIPH_ADC0)) {
+        }
 
-            // Enable the first sample sequencer to capture the value of channel 0 when
-            // the processor trigger occurs.
-            ADCSequenceConfigure(ADC0_BASE, 0, ADC_TRIGGER_PROCESSOR, 0);
-            ADCSequenceStepConfigure(ADC0_BASE, 0, 0,
-            ADC_CTL_IE | ADC_CTL_END | ADC_CTL_CH0);
-            ADCSequenceEnable(ADC0_BASE, 0);
+        // Enable the first sample sequencer to capture the value of channel 0 when
+        // the processor trigger occurs.
+        ADCSequenceConfigure(ADC0_BASE, 0, ADC_TRIGGER_PROCESSOR, 0);
+        ADCSequenceStepConfigure(ADC0_BASE, 0, 0,
+        ADC_CTL_IE | ADC_CTL_END | ADC_CTL_CH0);
+        ADCSequenceEnable(ADC0_BASE, 0);
 
-            // Trigger the sample sequence.
-            ADCProcessorTrigger(ADC0_BASE, 0);
+        // Trigger the sample sequence.
+        ADCProcessorTrigger(ADC0_BASE, 0);
 
-            // Wait until the sample sequence has completed.
-            while(!ADCIntStatus(ADC0_BASE, 0, 0))
-            {
-            }
+        // Wait until the sample sequence has completed.
+        while(!ADCIntStatus(ADC0_BASE, 0, 0)) {
+        }
 
-            // Read the value from the ADC.
-            ADCSequenceDataGet(ADC0_BASE, 0, &val_1);
-            //UARTprintf("IP Task - ADC 0 raw value: %d \n", val_1);
+        // Read the value from the ADC.
+        ADCSequenceDataGet(ADC0_BASE, 0, &val_1);
+        //UARTprintf("IP Task - ADC 0 raw value: %d \n", val_1);
 
-            // 4096 -> 100
-            value_1 = val_1 / 41;
+        // 4096 -> 100
+        value_1 = val_1 / 41;
 
-            //UP
-            if(value_1 >= value_tmp_1 + tol_1 * hyst_1 & value_tmp_1 < 100)
-            {
-                value_tmp_1 = value_tmp_1 + tol_1;
-                mboxmsg.value_1 = value_tmp_1;
-                mboxmsg.typ = MSG_TYPE_ANA;
-                Mailbox_post(mboxHandleIP,&mboxmsg,BIOS_WAIT_FOREVER);
-            }
+        //UP
+        if(value_1 >= value_tmp_1 + tol_1 * hyst_1 & value_tmp_1 < 100) {
+            value_tmp_1 = value_tmp_1 + tol_1;
+            mboxmsg.value_1 = value_tmp_1;
+            mboxmsg.typ = MSG_TYPE_ANA;
+            Mailbox_post(mboxHandleIP,&mboxmsg,BIOS_WAIT_FOREVER);
+        }
 
-            //DOWN
-            if(value_1 <= value_tmp_1 - tol_1 - tol_1 * (1 - hyst_1))
-            {
-                value_tmp_1 = value_tmp_1 - tol_1;
-                mboxmsg.value_1 = value_tmp_1;
-                mboxmsg.typ = MSG_TYPE_ANA;
-                Mailbox_post(mboxHandleIP,&mboxmsg,BIOS_WAIT_FOREVER);
-            }
+        //DOWN
+        if(value_1 <= value_tmp_1 - tol_1 + tol_1 * (1 - hyst_1)) {
+            value_tmp_1 = value_tmp_1 - tol_1;
+            mboxmsg.value_1 = value_tmp_1;
+            mboxmsg.typ = MSG_TYPE_ANA;
+            Mailbox_post(mboxHandleIP,&mboxmsg,BIOS_WAIT_FOREVER);
+        }
 
-            // DECREASING to ZERO
-            if(value_1 < 1 & value_1 < value_tmp_1)
-            {
-                value_tmp_1 = value_tmp_1 - tol_1;
-                mboxmsg.value_1 = value_tmp_1;
-                mboxmsg.typ = MSG_TYPE_ANA;
-                Mailbox_post(mboxHandleIP,&mboxmsg,BIOS_WAIT_FOREVER);
-            }
+        // DECREASING to ZERO
+        if(value_1 < 1 & value_1 < value_tmp_1) {
+            value_tmp_1 = value_tmp_1 - tol_1;
+            mboxmsg.value_1 = value_tmp_1;
+            mboxmsg.typ = MSG_TYPE_ANA;
+            Mailbox_post(mboxHandleIP,&mboxmsg,BIOS_WAIT_FOREVER);
+        }
 
         Task_sleep(100);
-
     }
 }
 
