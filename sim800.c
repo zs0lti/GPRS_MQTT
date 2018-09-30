@@ -131,14 +131,14 @@ void sim800_uart6_isr(UArg arg0)
 
 #ifdef SIM800_DEBUG
 #ifndef SIM800_FAST_SERIAL
-		if (isprint(ch))
-			UARTprintf("[ %c ]\n", ch);
+		if (isprint(ch))                                        //check if ASCII character
+			UARTprintf("[ %c ]\n", ch);                         //print ASCII character
 		else if (ch == '\n')
-			UARTprintf("[ \\n ]\n", ch);
+			UARTprintf("[ \\n ]\n");
 		else if (ch == '\r')
-			UARTprintf("[ \\r ]\n", ch);
+			UARTprintf("[ \\r ]\n");
 		else
-			UARTprintf("[ \\x%02x ]\n", ch);
+			UARTprintf("[ \\x%02x ]\n", ch);                    //else print HEX
 #endif
 #endif
 	}
