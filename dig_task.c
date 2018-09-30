@@ -24,13 +24,13 @@
 #include "uartstdio.h"
 #include "sim800.h"
 
-
 #define DIGITAL_TRANSITION_FIFO_SIZE 64
-static volatile int digital_state[DIGITAL_TRANSITION_FIFO_SIZE];
-static volatile uint32_t ribuf_rh = 0;
-static volatile uint32_t ribuf_wh = 0;
+volatile int digital_state[DIGITAL_TRANSITION_FIFO_SIZE];
+volatile uint32_t ribuf_rh = 0;
+volatile uint32_t ribuf_wh = 0;
 
-static int peek_dig_state()
+/*======================= peek dig state =======================*/
+int peek_dig_state()
 {
     if (ribuf_rh == ribuf_wh) {
         return -1;
@@ -39,7 +39,8 @@ static int peek_dig_state()
     return digital_state[ribuf_rh];
 }
 
-static int dig_get_state(void)
+/*======================= digital get state =======================*/
+int dig_get_state(void)
 {
     int state;
     if (ribuf_rh == ribuf_wh) {
@@ -52,7 +53,7 @@ static int dig_get_state(void)
     return state;
 }
 
-
+/*======================= digital GPIO-L ISR =======================*/
 volatile int current_dig_state = 0;
 
 void dig_gpiol_isr(UArg arg0)
@@ -64,17 +65,17 @@ void dig_gpiol_isr(UArg arg0)
     int_status = GPIOIntStatus(GPIO_PORTL_BASE, true);
     gpio_status = GPIOPinRead(GPIO_PORTL_BASE, GPIO_PIN_0 | GPIO_PIN_1);
 
-    if (int_status & GPIO_PIN_0) {
+    if (int_status & GPIO_PIN_0) {                  //detecting interrupt on pin0
         if (gpio_status & GPIO_PIN_0)
-            new_dig_state |= (1 << 0);
+            new_dig_state |= (1 << 0);              //set bit 0 to 1
         else
-            new_dig_state &= ~(1 << 0);
+            new_dig_state &= ~(1 << 0);             //set bit 0 to 0
     }
-    if (int_status & GPIO_PIN_1) {
+    if (int_status & GPIO_PIN_1) {                  //detecting interrupt on pin1
         if (gpio_status & GPIO_PIN_1)
-            new_dig_state |= (1 << 1);
+            new_dig_state |= (1 << 1);              //set bit 1 to 1
         else
-            new_dig_state &= ~(1 << 1);
+            new_dig_state &= ~(1 << 1);             //set bit 1 to 0
     }
 
     digital_state[ribuf_wh++] = new_dig_state;
@@ -84,8 +85,9 @@ void dig_gpiol_isr(UArg arg0)
     GPIOIntClear(GPIO_PORTL_BASE, int_status);
 }
 
+/*======================= digital init =======================*/
 // digital inputs are on PL0 and PL1
-static int dig_init(void)
+int dig_init(void)
 {
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOL);
     GPIOPinTypeGPIOInput(GPIO_PORTL_BASE, GPIO_PIN_0 | GPIO_PIN_1);
@@ -106,7 +108,7 @@ static int dig_init(void)
 
         hwiHandle = Hwi_create(INT_GPIOL, dig_gpiol_isr, &hwiParams, &eb);
         if (hwiHandle == NULL) {
-            UARTprintf("ERROR: Failed to create GPIOL interrupt\n");
+            UARTprintf("ERROR: Failed to create GPIOL interrupt\n");d
             System_abort("ERROR: Failed to create GPIOL interrupt\n");
         }
 
@@ -119,7 +121,7 @@ static int dig_init(void)
     return 0;
 }
 
-
+/*======================= digital task =======================*/
 void dig_task(UArg arg0, UArg arg1)
 {
     mqtt_msg mboxmsg;
@@ -136,15 +138,11 @@ void dig_task(UArg arg0, UArg arg1)
                     Mailbox_post(mboxHandleIP,&mboxmsg,BIOS_WAIT_FOREVER);
             }
         }
-
-        /*
-         * We could have used a semaphore here to immideatly react but since the data is send over
-         * MQTT and the SIM800 the timing here does not matter anymore
-         */
         Task_sleep(10);
     }
 }
 
+/*======================= setup digital task =======================*/
 int setup_dig_task(void)
 {
     Task_Params dig_task_params;
