@@ -107,7 +107,7 @@ int setup_adc_task(void)
     Error_init(&eb);
     Task_Params_init(&adc_task_params);
     adc_task_params.stackSize = 2048;
-    adc_task_params.priority = 14;
+    adc_task_params.priority = 15;
     adc_task_params.arg0 = NULL;
     adc_task_params.arg1 = NULL;
     adc_task_handle = Task_create((Task_FuncPtr)adc_task, &adc_task_params, &eb);

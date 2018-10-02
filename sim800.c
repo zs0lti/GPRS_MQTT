@@ -769,8 +769,6 @@ void sim800_task(UArg arg0, UArg arg1)
     }
     UARTprintf("MQTT connect done\n");
 
-
-	int counter = 0;
 	while (1 > 0) {
 
 		enum MQTTErrors err;
@@ -805,8 +803,6 @@ void sim800_task(UArg arg0, UArg arg1)
 		    }
 		}
 
-
-		//Task_sleep(100);
 		mqtt_sync(&client);
 	}
 }
