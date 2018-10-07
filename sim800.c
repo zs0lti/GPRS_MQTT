@@ -45,8 +45,8 @@ Mailbox_Handle mboxHandleIP;
 
 #define RESPONSE_INPUT_RINGBUFFER_SIZE 2048
 char response_input_ringbuffer[RESPONSE_INPUT_RINGBUFFER_SIZE];
-uint32_t ribuf_rh = 0;
-uint32_t ribuf_wh = 0;
+static uint32_t ribuf_rh = 0;
+static uint32_t ribuf_wh = 0;
 
 uint32_t gl_timeout = 0;
 uint32_t gl_timeout_start = 0;
@@ -827,7 +827,7 @@ int setup_sim800_task(void)
 
 	Task_Params_init(&sim800_task_params);
 	sim800_task_params.stackSize = 2048;
-	sim800_task_params.priority = 15;
+	sim800_task_params.priority = 14;
 	sim800_task_params.arg0 = NULL;
 	sim800_task_params.arg1 = NULL;
 	sim800_task_handle = Task_create((Task_FuncPtr)sim800_task, &sim800_task_params, &eb);

@@ -65,7 +65,7 @@ void adc_task(UArg arg0, UArg arg1)
 
         // Read the value from the ADC.
         ADCSequenceDataGet(ADC0_BASE, 0, &val_1);
-        //UARTprintf("IP Task - ADC 0 raw value: %d \n", val_1);
+        UARTprintf("IP Task - ADC 0 raw value: %d \n", val_1);
 
         // 4096 -> 100
         value_1 = val_1 / 41;

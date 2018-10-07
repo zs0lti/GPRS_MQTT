@@ -25,9 +25,9 @@
 #include "sim800.h"
 
 #define DIGITAL_TRANSITION_FIFO_SIZE 64
-volatile int digital_state[DIGITAL_TRANSITION_FIFO_SIZE];
-volatile uint32_t ribuf_rh = 0;
-volatile uint32_t ribuf_wh = 0;
+int digital_state[DIGITAL_TRANSITION_FIFO_SIZE];
+static uint32_t ribuf_rh = 0;
+static uint32_t ribuf_wh = 0;
 
 /*======================= peek dig state =======================*/
 int peek_dig_state()
@@ -108,7 +108,7 @@ int dig_init(void)
 
         hwiHandle = Hwi_create(INT_GPIOL, dig_gpiol_isr, &hwiParams, &eb);
         if (hwiHandle == NULL) {
-            UARTprintf("ERROR: Failed to create GPIOL interrupt\n");d
+            UARTprintf("ERROR: Failed to create GPIOL interrupt\n");
             System_abort("ERROR: Failed to create GPIOL interrupt\n");
         }
 
